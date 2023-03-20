@@ -14,35 +14,31 @@ const refs = {
 refs.input.addEventListener('input', debounce(onInputSearch, DEBOUNCE_DELAY));
 
 function onInputSearch(e) {
-  const searchElement = e.target.value;
+  const searchElement = e.target.value.trim();
+  refs.countryList.innerHTML = '';
+  refs.countryInfo.innerHTML = '';
 
-  if (searchElement === '') {
-    refs.countryInfo.innerHTML = '';
-    return;
+  if (searchElement) {
+    fetchCountries(searchElement)
+      .then(countries => {
+        if (countries.length > 10) {
+          Notify.warning(
+            'Too many matches found. Please enter a more specific name.'
+          );
+          return;
+        }
+        if (countries.length > 1) {
+          renderCountries(countries);
+          return;
+        } else {
+          renderCountry(countries);
+        }
+      })
+      .catch(error => {
+        Notify.failure('Oops, there is no country with that name');
+      });
   }
-
-  fetchCountries(searchElement)
-    .then(countries => {
-      console.log(countries.length);
-      refs.countryList.innerHTML = '';
-      refs.countryInfo.innerHTML = '';
-      if (countries.length > 10) {
-        Notify.warning(
-          'Too many matches found. Please enter a more specific name.'
-        );
-        return;
-      }
-      if (countries.length > 1) {
-        renderCountries(countries);
-        return;
-      } else {
-        renderCountry(countries);
-      }
-    })
-    .catch(error => {
-      Notify.failure('Oops, there is no country with that name');
-      refs.countryInfo.innerHTML = '';
-    });
+  return;
 }
 
 function renderCountry(country) {
